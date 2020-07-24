@@ -1,0 +1,64 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>系统登录</title>
+    <!-- Tell the browser to be responsive to screen width -->
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    <!-- Bootstrap 3.3.7 -->
+    <link rel="stylesheet" href="{% static 'adminlte/bower_components/bootstrap/dist/css/bootstrap.min.css' %}">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="{% static 'adminlte/bower_components/font-awesome/css/font-awesome.min.css' %}">
+
+    <link rel="stylesheet" href="{% static 'adminlte//css/AdminLTE.min.css' %}">
+
+</head>
+<body class="hold-transition login-page">
+<div class="login-box" style="width: 500px;">
+    <div class="login-logo">
+        <a href="#"><b>Django Admin</b> Demo</a>
+    </div>
+    <div class="login-box-body">
+        <p class="login-box-msg">登录系统可输入用户名密码： admin / 123456</p>
+        <form class="form-horizontal" method="post" style="padding: 0 10px;">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label for="user" class="col-sm-2 control-label">用户名</label>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control" id="user" name="username">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="pwd" class="col-sm-2 control-label">密码</label>
+                <div class="col-sm-10">
+                    <input type="password" class="form-control" id="pwd" name="password">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="col-sm-12">
+                    <button type="submit" class="btn btn-primary  pull-right">登 录</button>
+                    <span style="color: red">{{ error }}</span>
+                </div>
+            </div>
+
+        </form>
+
+
+    </div>
+
+</div>
+
+
+
+<script src="{% static 'adminlte/bower_components/jquery/dist/jquery.min.js' %}"></script>
+<script src="{% static 'adminlte/bower_components/bootstrap/dist/js/bootstrap.min.js' %}"></script>
+
+
+</body>
+</html>
+
+

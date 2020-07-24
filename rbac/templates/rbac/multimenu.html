@@ -1,0 +1,47 @@
+<ul class="multi-menu sidebar-menu" data-widget="tree">
+    {% for item in menu_dict.values %}
+        <li class="treeview">
+            <a href="#">
+                <i class="fa {{ item.icon }}"></i> <span> {{ item.title }}</span>
+                <span class="pull-right-container">
+                    <i class="fa fa-angle-left pull-right"></i>
+                </span>
+            </a>
+            <ul class="treeview-menu">
+                {% for per in item.children %}
+                    <li>
+                        <a href="{{ per.url }}" class="{{ per.class }}">
+                            <i class="fa fa-caret-right"></i>
+                            <span>{{ per.title }}</span>
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
+        </li>
+    {% endfor %}
+</ul>
+
+
+<script>
+    $(function () {
+        $('.sidebar-menu li:not(.treeview) > a').on('click', function () {
+            var $parent = $(this).parent().addClass('active');
+            $parent.siblings('.treeview.active').find('> a').trigger('click');
+            $parent.siblings().removeClass('active').find('li').removeClass('active');
+        });
+        $(function () {
+            $('.sidebar-menu a').each(function () {
+                if ($(this).hasClass('active')) {
+                    //console.log(this.href === window.location.href);
+                    $(this).parent().addClass('active')
+                        .closest('.treeview-menu').addClass('.menu-open')
+                        .closest('.treeview').addClass('active');
+                }
+            });
+        });
+    });
+</script>
+
+
+
+

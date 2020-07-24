@@ -1,0 +1,48 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-12">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <i class="fa fa-user-circle-o" aria-hidden="true"></i> 角色列表
+                    <div class="btn-group pull-right">
+                        <a href="{% url 'rbac:role_add' %}" class="btn btn-success btn-xs">
+                            <i class="fa fa-plus-circle" aria-hidden="true"></i>
+                            新建角色
+                        </a>
+                    </div>
+                </div>
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>角色名称</th>
+                        <th>权限数量</th>
+                        <th>操作</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for row in roles %}
+                        <tr>
+                            <td>{{ row.id }}</td>
+                            <td>{{ row.title }}</td>
+                            <td>{{ row.permission_count }}</td>
+                            <td style="width: 20%;">
+                                <a href="{% url 'rbac:role_edit' pk=row.id %}" style="display: inline-block;">
+                                    <i class="fa fa-edit" aria-hidden="true"></i>
+                                </a>
+
+                                <a href="{% url 'rbac:role_del' pk=row.id %}"
+                                   style="color: #d9534f;display: inline-block;">
+                                    <i class="fa fa-trash-o" aria-hidden="true"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}

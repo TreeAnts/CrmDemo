@@ -1,0 +1,148 @@
+{% extends 'layout.html' %}
+
+{% block head %}
+<style>
+    .search-group {
+        padding: 5px 10px;
+    }
+
+    .search-group .row .whole {
+        min-width: 40px;
+        float: left;
+        display: inline-block;
+        padding: 5px 0 5px 8px;
+        margin: 3px;
+        font-weight: bold;
+
+    }
+
+    .search-group .row .others {
+        padding-left: 60px;
+    }
+
+    .search-group .row a {
+        display: inline-block;
+        padding: 5px 8px;
+        margin: 3px;
+        border: 1px solid #d4d4d4;
+
+    }
+
+    .search-group .row a {
+        display: inline-block;
+        padding: 5px 8px;
+        margin: 3px;
+        border: 1px solid #d4d4d4;
+    }
+
+    .search-group a.active {
+        color: #fff;
+        background-color: #337ab7;
+        border-color: #2e6da4;
+    }
+
+    .table-list {border:1px solid #ddd;margin-bottom: 20px;}
+    .table-list thead tr th {border:1px solid #ddd;background-color: #f5f5f5;}
+    .table-list tbody tr td {border:1px solid #ddd;}
+
+</style>
+{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-12">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <i class="fa fa-align-justify" aria-hidden="true"></i> 列表
+
+                </div>
+
+                <div class="panel-body">
+
+                    {% if search_group_row_list %}
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <i class="fa fa-filter" aria-hidden="true"></i> 快速筛选
+                            </div>
+                            <div class="panel-body">
+                                <div class="search-group">
+                                    {% for row in search_group_row_list %}
+                                        <div class="row">
+                                            {% for obj in row %}
+                                                {{ obj|safe }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    {% if search_list %}
+                        <div class="pull-right" style="margin-bottom: 10px;">
+                            <form method="GET" class="form-inline">
+                                <div class="form-group">
+                                    <input class="form-control" type="text" name="q" value="{{ search_value }}" placeholder="关键字搜索">
+                                    <button class="btn btn-primary" type="submit">
+                                        <i class="fa fa-search" aria-hidden="true"></i>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    {% endif %}
+
+                    <form method="post">
+                        {% csrf_token %}
+                        {% if action_dict %}
+                            <div class="pull-left" style="margin: 0 5px 10px 0;">
+                                <div class="form-inline">
+                                    <div class="form-group">
+                                        <select class="form-control" name="action">
+                                            <option value="">-请选择操作-</option>
+                                            {% for func_name,func_text in action_dict.items %}
+                                                <option value="{{ func_name }}">{{ func_text }}</option>
+                                            {% endfor %}
+                                        </select>
+                                        <input class="btn btn-primary" type="submit" value="执行"/>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+
+
+                        {% if add_btn %}
+                            <div class="pull-left" style="margin: 0 5px 10px 0;">
+                                {{ add_btn|safe }}
+                            </div>
+                        {% endif %}
+
+                        <table class="table table-bordered table-list">
+                            <thead>
+                            <tr>
+                                {% for item in header_list %}
+                                    <th>{{ item }}</th>
+                                {% endfor %}
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for row in body_list %}
+                                <tr>
+                                    {% for ele in row %}
+                                        <td>{{ ele }}</td>
+                                    {% endfor %}
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </form>
+                    <nav>
+                        <ul class="pagination" style="margin: 0;">
+                            {{ pager.page_html|safe }}
+                        </ul>
+                    </nav>
+                </div>
+
+            </div>
+        </div>
+    </div>
+{% endblock %}
