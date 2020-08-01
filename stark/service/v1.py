@@ -409,6 +409,9 @@ class StarkHandler(object):
             row = option_object.get_queryset_or_tuple(self.model_class, request, *args, **kwargs)
             search_group_row_list.append(row)
 
+        # 在模板中显示model名称
+        model_name = self.model_class._meta.verbose_name
+
         return render(
             request,
             self.change_list_template or 'stark/changelist.html',
@@ -421,7 +424,8 @@ class StarkHandler(object):
                 'search_list': search_list,
                 'search_value': search_value,
                 'action_dict': action_dict,
-                'search_group_row_list': search_group_row_list
+                'search_group_row_list': search_group_row_list,
+                'model_name': model_name,
             }
         )
 
@@ -440,16 +444,19 @@ class StarkHandler(object):
         :param request:
         :return:
         """
+        # 在模板中显示model名称
+        model_name = self.model_class._meta.verbose_name
+
         model_form_class = self.get_model_form_class(True, request, None, *args, **kwargs)
         if request.method == 'GET':
             form = model_form_class()
-            return render(request, self.add_template or 'stark/change.html', {'form': form})
+            return render(request, self.add_template or 'stark/change.html', {'form': form,'model_name':model_name})
         form = model_form_class(data=request.POST)
         if form.is_valid():
             response = self.save(request, form, False, *args, **kwargs)
             # 在数据库保存成功后，跳转回列表页面(携带原来的参数)。
             return response or redirect(self.reverse_list_url(*args, **kwargs))
-        return render(request, self.add_template or 'stark/change.html', {'form': form})
+        return render(request, self.add_template or 'stark/change.html', {'form': form,'model_name':model_name})
 
 
     def get_change_object(self, request, pk, *args, **kwargs):
@@ -462,6 +469,9 @@ class StarkHandler(object):
         :param pk:
         :return:
         """
+        # 在模板中显示model名称
+        model_name = self.model_class._meta.verbose_name
+
         current_change_object = self.get_change_object(request, pk, *args, **kwargs)
         if not current_change_object:
             return HttpResponse('要修改的数据不存在，请重新选择！')
@@ -469,13 +479,13 @@ class StarkHandler(object):
         model_form_class = self.get_model_form_class(False, request, pk, *args, **kwargs)
         if request.method == 'GET':
             form = model_form_class(instance=current_change_object)
-            return render(request,  self.change_template or 'stark/change.html', {'form': form, 'pk':pk})
+            return render(request,  self.change_template or 'stark/change.html', {'form': form, 'pk':pk,'model_name':model_name})
         form = model_form_class(data=request.POST, instance=current_change_object)
         if form.is_valid():
             response = self.save(request, form, True, *args, **kwargs)
             # 在数据库保存成功后，跳转回列表页面(携带原来的参数)。
             return response or redirect(self.reverse_list_url(*args, **kwargs))
-        return render(request,  self.change_template or 'stark/change.html', {'form': form, 'pk':pk})
+        return render(request,  self.change_template or 'stark/change.html', {'form': form, 'pk':pk,'model_name':model_name})
 
     def delete_object(self, request, pk, *args, **kwargs):
         self.model_class.objects.filter(pk=pk).delete()
@@ -487,9 +497,12 @@ class StarkHandler(object):
         :param pk:
         :return:
         """
+        # 在模板中显示model名称
+        model_name = self.model_class._meta.verbose_name
+
         origin_list_url = self.reverse_list_url(*args, **kwargs)
         if request.method == 'GET':
-            return render(request, self.delete_template or 'stark/delete.html', {'cancel': origin_list_url})
+            return render(request, self.delete_template or 'stark/delete.html', {'cancel': origin_list_url,'model_name':model_name})
 
         response = self.delete_object(request, pk, *args, **kwargs)
         return response or redirect(origin_list_url)

@@ -6,7 +6,7 @@
             <div class="alert fade in" style="color: #a94442;background-color: #f2dede; border-color: #ebccd1;" role="alert">
                 <form method="post">
                     {% csrf_token %}
-                    <h4>删除操作</h4>
+                    <h4>删除{{ model_name }}操作</h4>
                     <p style="font-size: 14px;padding-top: 20px;padding-bottom: 20px;">
                         <i class="fa fa-warning" aria-hidden="true"></i>
                         删除后将不可恢复，请确定是否删除？

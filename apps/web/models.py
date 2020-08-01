@@ -16,6 +16,9 @@ class School(models.Model):
     def __str__(self):
         return self.title
 
+    class Meta:
+        verbose_name = '校区'
+
 
 class Department(models.Model):
     """部门表"""
@@ -23,6 +26,9 @@ class Department(models.Model):
 
     def __str__(self):
         return self.title
+
+    class Meta:
+        verbose_name = '部门'
 
 
 class UserInfo(RbacUser):
@@ -42,6 +48,9 @@ class UserInfo(RbacUser):
     def __str__(self):
         return "%s (%s)" %(self.realname,self.username)
 
+    class Meta:
+        verbose_name = '用户'
+
 
 class Course(models.Model):
     """
@@ -56,6 +65,9 @@ class Course(models.Model):
 
     def __str__(self):
         return self.name
+
+    class Meta:
+        verbose_name = '课程'
 
 
 class ClassList(models.Model):
@@ -77,6 +89,8 @@ class ClassList(models.Model):
     def __str__(self):
         return "{0}({1}期)".format(self.course.name, self.semester)
 
+    class Meta:
+        verbose_name = '班级'
 
 
 class Customer(models.Model):
@@ -167,6 +181,8 @@ class Customer(models.Model):
     def __str__(self):
         return "姓名:{0},联系方式:{1}".format(self.name, self.qq, )
 
+    class Meta:
+        verbose_name = '客户'
 
 
 class ConsultRecord(models.Model):
@@ -178,6 +194,8 @@ class ConsultRecord(models.Model):
     note = models.TextField(verbose_name="跟进内容")
     date = models.DateField(verbose_name="跟进日期", auto_now_add=True)
 
+    class Meta:
+        verbose_name = '跟进记录'
 
 class PaymentRecord(models.Model):
     """
@@ -207,6 +225,8 @@ class PaymentRecord(models.Model):
 
     note = models.TextField(verbose_name="备注", blank=True, null=True)
 
+    class Meta:
+        verbose_name = '缴费记录'
 
 
 class Student(models.Model):
@@ -231,6 +251,9 @@ class Student(models.Model):
     def __str__(self):
         return self.customer.name
 
+    class Meta:
+        verbose_name = '学生'
+
 
 class ScoreRecord(models.Model):
     """
@@ -241,6 +264,8 @@ class ScoreRecord(models.Model):
     score = models.IntegerField(verbose_name='分值', help_text='违纪扣分写负值，表现邮寄加分写正值')
     user = models.ForeignKey(verbose_name='执行人', to='UserInfo', null=True, blank=True, on_delete=models.SET_NULL)
 
+    class Meta:
+        verbose_name = '积分'
 
 
 class CourseRecord(models.Model):
@@ -254,6 +279,9 @@ class CourseRecord(models.Model):
 
     def __str__(self):
         return "{0} day{1}".format(self.class_object, self.day_num)
+
+    class Meta:
+        verbose_name = '上课记录'
 
 
 class StudyRecord(models.Model):
@@ -270,3 +298,6 @@ class StudyRecord(models.Model):
         ('leave_early', "早退"),
     )
     record = models.CharField("上课纪录", choices=record_choices, default="checked", max_length=64)
+
+    class Meta:
+        verbose_name = '考勤记录'

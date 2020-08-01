@@ -11,6 +11,9 @@ class Menu(models.Model):
     def __str__(self):
         return self.title
 
+    class Meta:
+        verbose_name = '菜单'
+
 class Permission(models.Model):
     """
     权限表
@@ -23,6 +26,9 @@ class Permission(models.Model):
     def __str__(self):
         return self.title
 
+    class Meta:
+        verbose_name = '权限'
+
 
 class Role(models.Model):
     """
@@ -33,6 +39,9 @@ class Role(models.Model):
 
     def __str__(self):
         return self.title
+
+    class Meta:
+        verbose_name = '角色'
 
 class UserManager(BaseUserManager):
     def _create_user(self,username,password,**kwargs):
