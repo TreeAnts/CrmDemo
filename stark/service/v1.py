@@ -311,10 +311,11 @@ class StarkHandler(object):
 
 
 
-    def __init__(self, site, model_class, prev):
+    def __init__(self, site, model_class, prev, base_template):
         self.site = site
         self.model_class = model_class
         self.prev = prev
+        self.base_template = base_template
         self.request = None
 
     # 初始列表数据筛选
@@ -409,8 +410,6 @@ class StarkHandler(object):
             row = option_object.get_queryset_or_tuple(self.model_class, request, *args, **kwargs)
             search_group_row_list.append(row)
 
-        # 在模板中显示model名称
-        model_name = self.model_class._meta.verbose_name
 
         return render(
             request,
@@ -425,7 +424,8 @@ class StarkHandler(object):
                 'search_value': search_value,
                 'action_dict': action_dict,
                 'search_group_row_list': search_group_row_list,
-                'model_name': model_name,
+                'model_name': self.model_class._meta.verbose_name,  # 在模板中显示model名称
+                'base_template': self.base_template,
             }
         )
 
@@ -450,13 +450,13 @@ class StarkHandler(object):
         model_form_class = self.get_model_form_class(True, request, None, *args, **kwargs)
         if request.method == 'GET':
             form = model_form_class()
-            return render(request, self.add_template or 'stark/change.html', {'form': form,'model_name':model_name})
+            return render(request, self.add_template or 'stark/change.html', {'form': form,'model_name':model_name,'base_template':self.base_template})
         form = model_form_class(data=request.POST)
         if form.is_valid():
             response = self.save(request, form, False, *args, **kwargs)
             # 在数据库保存成功后，跳转回列表页面(携带原来的参数)。
             return response or redirect(self.reverse_list_url(*args, **kwargs))
-        return render(request, self.add_template or 'stark/change.html', {'form': form,'model_name':model_name})
+        return render(request, self.add_template or 'stark/change.html', {'form': form,'model_name':model_name,'base_template':self.base_template})
 
 
     def get_change_object(self, request, pk, *args, **kwargs):
@@ -479,13 +479,13 @@ class StarkHandler(object):
         model_form_class = self.get_model_form_class(False, request, pk, *args, **kwargs)
         if request.method == 'GET':
             form = model_form_class(instance=current_change_object)
-            return render(request,  self.change_template or 'stark/change.html', {'form': form, 'pk':pk,'model_name':model_name})
+            return render(request,  self.change_template or 'stark/change.html', {'form': form, 'pk':pk,'model_name':model_name,'base_template':self.base_template})
         form = model_form_class(data=request.POST, instance=current_change_object)
         if form.is_valid():
             response = self.save(request, form, True, *args, **kwargs)
             # 在数据库保存成功后，跳转回列表页面(携带原来的参数)。
             return response or redirect(self.reverse_list_url(*args, **kwargs))
-        return render(request,  self.change_template or 'stark/change.html', {'form': form, 'pk':pk,'model_name':model_name})
+        return render(request,  self.change_template or 'stark/change.html', {'form': form, 'pk':pk,'model_name':model_name,'base_template':self.base_template})
 
     def delete_object(self, request, pk, *args, **kwargs):
         self.model_class.objects.filter(pk=pk).delete()
@@ -502,7 +502,7 @@ class StarkHandler(object):
 
         origin_list_url = self.reverse_list_url(*args, **kwargs)
         if request.method == 'GET':
-            return render(request, self.delete_template or 'stark/delete.html', {'cancel': origin_list_url,'model_name':model_name})
+            return render(request, self.delete_template or 'stark/delete.html', {'cancel': origin_list_url,'model_name':model_name,'base_template':self.base_template})
 
         response = self.delete_object(request, pk, *args, **kwargs)
         return response or redirect(origin_list_url)
@@ -612,7 +612,7 @@ class StarkSite(object):
         self.app_name = 'stark'
         self.namespace = 'stark'
 
-    def register(self, model_class, handler_class=None, prev=None):
+    def register(self, model_class, handler_class=None, prev=None, base_template=None):
         """
         :param model_class: 是models中的数据库表对应的类。 models.UserInfo
         :param handler_class: 处理请求的视图函数所在的类
@@ -629,7 +629,7 @@ class StarkSite(object):
         if not handler_class:
             handler_class = StarkHandler
         self._registry.append(
-            {'model_class': model_class, 'handler': handler_class(self, model_class, prev), 'prev': prev})
+            {'model_class': model_class, 'handler': handler_class(self, model_class, prev, base_template), 'prev': prev})
 
     def get_urls(self):
         patterns = []
