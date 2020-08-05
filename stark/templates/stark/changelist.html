@@ -1,5 +1,9 @@
 {% extends base_template|default:'layout.html' %}
 
+{% block title %}
+    {{ model_name }}列表
+{% endblock %}
+
 {% block head %}
 <style>
     .search-group {
@@ -46,6 +50,11 @@
     .table-list tbody tr td {border:1px solid #ddd;}
 
 </style>
+
+{% if date_range %}
+    <link rel="stylesheet" href="{% static 'adminlte/bower_components/daterangepicker/daterangepicker.css' %}">
+{% endif %}
+
 {% endblock %}
 
 {% block content %}
@@ -86,6 +95,18 @@
                                     <button class="btn btn-primary" type="submit">
                                         <i class="fa fa-search" aria-hidden="true"></i>
                                     </button>
+                                </div>
+                            </form>
+                        </div>
+                    {% endif %}
+
+
+                    {% if date_range %}
+                        <div class="pull-right" style="margin-bottom: 10px; margin-right: 5px;">
+                            <form method="GET" class="form-inline">
+                                <div class="input-group" style="width: 280px;">
+                                    <span class="input-group-addon">{{ date_title|default:'日期范围' }}</span>
+                                    <input id="rangePicker" type="text" class="form-control">
                                 </div>
                             </form>
                         </div>
@@ -145,4 +166,73 @@
             </div>
         </div>
     </div>
+
+{% if date_range %}
+    <script src="{% static 'adminlte/bower_components/daterangepicker/moment.min.js' %}"></script>
+    <script src="{% static 'adminlte/bower_components/daterangepicker/daterangepicker.js' %}"></script>
+    <script>
+        $(function () {
+            initDateRangePicker();
+
+        });
+
+        function initDateRangePicker() {
+            var options = {
+                startDate: moment('{{ date_start|default:"2019-01-01" }}'),
+                maxDate: moment('{{ date_end|default:"" }}'),
+                alwaysShowCalendars: true,
+                showWeekNumbers: true,
+                ranges: {
+                    '今天': [moment(), moment()],
+                    '本月': [moment().startOf('month'), moment().endOf('month')],
+                    '上月': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')],
+                    '本年': [moment().startOf('year'), moment().endOf('year')],
+                    '最近7天': [moment().subtract(6, 'days'), moment()],
+                    '最近30天': [moment().subtract(29, 'days'), moment()],
+                    '最近90天': [moment().subtract(89, 'days'), moment()],
+                },
+                locale: {
+                    format: 'YYYY-MM-DD',
+                    separator: ' 至 ',
+                    applyLabel: '确定',
+                    cancelLabel: '取消',
+                    fromLabel: '开始',
+                    toLabel: '结束',
+                    customRangeLabel: '自定义',
+                    weekLabel: 'W',
+                    daysOfWeek: ['一', '二', '三', '四', '五', '六', '日'],
+                    monthNames: ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'],
+                    firstDay: 1
+                }
+            };
+
+            $('#rangePicker').daterangepicker(options, function (start, end, label) {
+                // 选择了时间之后，函数自动被触发。
+                submitDateRangePicker(start.format('YYYY-MM-DD'), end.add(1, 'days').format('YYYY-MM-DD'));
+            });
+        }
+
+        function submitDateRangePicker(start, end) {
+            var urlstr = window.location.href;
+            //console.log(urlstr)
+            if (urlstr.indexOf("?")!=-1){
+                if (urlstr.indexOf("start_dt=")!=-1){
+                    var param_start = urlstr.substr(urlstr.indexOf("start_dt="),19);
+                    //console.log(param_start);
+                    urlstr = urlstr.replace(param_start,"start_dt=" + start);
+                    var param_end = urlstr.substr(urlstr.indexOf("end_dt="),17);
+                    //console.log(param_end);
+                    urlstr = urlstr.replace(param_end,"end_dt=" + end);
+                    //console.log(urlstr);
+                    location.href = urlstr;
+                }else{
+                    location.href = location.href + '&start_dt=' + start + '&end_dt=' + end ;
+                }
+            }else{
+                location.href = location.href + '?start_dt=' + start + '&end_dt=' + end ;
+            }
+        }
+    </script>
+{% endif %}
+
 {% endblock %}

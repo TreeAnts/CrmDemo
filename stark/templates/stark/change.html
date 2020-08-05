@@ -1,5 +1,9 @@
 {% extends base_template|default:'layout.html' %}
 
+{% block title %}
+    {% if pk %}编辑{{ model_name }}{% else %}新增{{ model_name }}{% endif %}
+{% endblock %}
+
 {% block head %}
     <style>
         .icon-area {

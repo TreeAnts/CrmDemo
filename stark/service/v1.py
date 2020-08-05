@@ -9,8 +9,9 @@ from django import forms
 import functools
 from django.db.models import Q
 from django.db.models import ForeignKey, ManyToManyField
-import copy
-
+# import copy
+# from datetime import datetime
+# from django.utils.timezone import make_aware
 
 
 def get_choice_text(title, field):
@@ -119,7 +120,7 @@ class SearchGroupRow(object):
 
 
 class Option(object):
-    def __init__(self, field, is_multi=False, db_condition=None, text_func=None, value_func=None):
+    def __init__(self, field, is_multi=False, db_condition=None, text_func=None, value_func=None, title=None):
         """
         :param field: 组合搜索关联的字段
         :param is_multi: 是否支持多选
@@ -134,8 +135,9 @@ class Option(object):
         self.db_condition = db_condition
         self.text_func = text_func
         self.value_func = value_func
-
         self.is_choice = False
+        self.title = title
+
 
     def get_db_condition(self, request, *args, **kwargs):
         return self.db_condition
@@ -147,7 +149,10 @@ class Option(object):
         """
         # 根据gender或depart字符串，去自己对应的Model类中找到 字段对象
         field_object = model_class._meta.get_field(self.field)
-        title = field_object.verbose_name
+        if self.title:
+            title = self.title
+        else:
+            title = field_object.verbose_name
         # 获取关联数据
         if isinstance(field_object, ForeignKey) or isinstance(field_object, ManyToManyField):
             # FK和M2M,应该去获取其关联表中的数据： QuerySet
@@ -264,6 +269,13 @@ class StarkHandler(object):
 
         return DynamicModelForm
 
+
+    # 添加日期范围框显示
+    date_range = {}  # '{date_field':'create_time','date_title':'日期范围'}
+    def get_date_range(self):
+        return self.date_range
+
+
     # 排序
     order_list = []
     def get_order_list(self):
@@ -315,8 +327,8 @@ class StarkHandler(object):
         self.site = site
         self.model_class = model_class
         self.prev = prev
-        self.base_template = base_template
         self.request = None
+        self.base_template = base_template
 
     # 初始列表数据筛选
     def get_queryset(self, request, *args, **kwargs):
@@ -354,6 +366,24 @@ class StarkHandler(object):
         search_group_condition = self.get_search_group_condition(request)
         prev_queryset = self.get_queryset(request, *args, **kwargs)
         queryset = prev_queryset.filter(conn).filter(**search_group_condition).order_by(*order_list)
+
+        # 获取日期范围条件  # date_range = {}  # '{'date_field':'create_time','date_title':'日期范围'}
+        date_range = self.get_date_range()
+        date_title = None
+        start_dt = request.GET.get('start_dt')
+        end_dt = request.GET.get('end_dt')
+        if date_range:
+            date_title = date_range['date_title']
+            if start_dt and end_dt:
+                # start_date = make_aware(datetime.strptime(start_dt,'%Y-%m-%d'))
+                # end_date = make_aware(datetime.strptime(end_dt,'%Y-%m-%d'))
+                date_range_condition = {
+                    date_range['date_field']+'__gte': '%s' % start_dt,
+                    date_range['date_field']+'__lt': '%s' % end_dt
+                }
+                queryset = queryset.filter(**date_range_condition)
+
+
 
         # ########## 4. 处理分页 ##########
         all_count = queryset.count()
@@ -411,6 +441,7 @@ class StarkHandler(object):
             search_group_row_list.append(row)
 
 
+
         return render(
             request,
             self.change_list_template or 'stark/changelist.html',
@@ -420,6 +451,10 @@ class StarkHandler(object):
                 'body_list': body_list,
                 'pager': pager,
                 'add_btn': add_btn,
+                'date_range': date_range,
+                'date_title': date_title,
+                'date_start': start_dt,
+                'date_end': end_dt,
                 'search_list': search_list,
                 'search_value': search_value,
                 'action_dict': action_dict,
