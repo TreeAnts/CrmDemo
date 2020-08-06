@@ -1,4 +1,6 @@
-from stark.service.v1 import StarkHandler, get_choice_text, get_m2m_text, StarkModelForm
+from stark.service.v1 import StarkHandler, get_choice_text, get_datetime_text,get_m2m_text, StarkModelForm,Option
+
+
 from apps.web import models
 from django.utils.safestring import mark_safe
 from django.conf.urls import re_path
@@ -23,8 +25,19 @@ class PublicCustomerHandler(PermissionHandler,StarkHandler):
         record_url = self.reverse_commons_url(self.get_url_name('record_view'), pk=obj.pk)
         return mark_safe('<a href="%s">查看跟进</a>' % record_url)
 
+    per_page_count = 10
 
-    list_display = [StarkHandler.display_checkbox,'name', 'qq', get_m2m_text('咨询课程', 'course'),display_record, get_choice_text('状态', 'status')]
+    list_display = [StarkHandler.display_checkbox,'name', 'qq', get_m2m_text('咨询课程', 'course'),get_datetime_text('最后跟进日','last_consult_date'),display_record, get_choice_text('状态', 'status')]
+
+    date_range = {'date_field':'last_consult_date','date_title':'最后跟进日'}
+
+    search_list = ['name__contains','qq__contains',]
+
+    search_group = [
+        Option('experience',True, title='工作经验：'),
+        Option('course',True, title='资讯课程：'),
+    ]
+
 
     def get_queryset(self, request, *args, **kwargs):
         return self.model_class.objects.filter(consultant__isnull=True)

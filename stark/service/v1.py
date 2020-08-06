@@ -10,8 +10,27 @@ import functools
 from django.db.models import Q
 from django.db.models import ForeignKey, ManyToManyField
 # import copy
-# from datetime import datetime
+import datetime
 # from django.utils.timezone import make_aware
+
+
+def get_url_text(title, url_field, text_field, a_target):
+    """
+    对于Stark组件中定义列时，显示带有a标签的字段，调用此方法即可。
+    :param title: 希望页面显示的表头
+    :param url_field: a标签href属性字段名称
+    :param text_field: a标签内容字段名称
+    :param a_target: a标签target属性
+    :return:
+    """
+    def inner(self, obj=None, is_header=None, *args, **kwargs):   # 闭包函数
+        if is_header:
+            return title
+        url = getattr(obj, url_field)
+        text = getattr(obj, text_field)
+        html = mark_safe('<a href="%s" target="%s">%s</a>'  % (url, a_target, text))
+        return html
+    return inner
 
 
 def get_choice_text(title, field):
@@ -21,7 +40,7 @@ def get_choice_text(title, field):
     :param field: 字段名称
     :return:
     """
-    def inner(self, obj=None, is_header=None, *args, **kwargs):
+    def inner(self, obj=None, is_header=None, *args, **kwargs):   # 闭包函数
         if is_header:
             return title
         method = "get_%s_display" % field
@@ -275,6 +294,15 @@ class StarkHandler(object):
     def get_date_range(self):
         return self.date_range
 
+    # 文字说明
+    text_desc = ''
+    def get_text_desc(self):
+        return self.text_desc
+
+    # 是否需要登录认证
+    need_auth = False
+    def get_need_auth(self):
+        return self.need_auth
 
     # 排序
     order_list = []
@@ -375,11 +403,14 @@ class StarkHandler(object):
         if date_range:
             date_title = date_range['date_title']
             if start_dt and end_dt:
+                end_date = datetime.datetime.strptime(end_dt, "%Y-%m-%d") + datetime.timedelta(days = 1)
+                end_dt_1 = datetime.datetime.strftime(end_date, "%Y-%m-%d")
+                # print(end_dt_1)
                 # start_date = make_aware(datetime.strptime(start_dt,'%Y-%m-%d'))
                 # end_date = make_aware(datetime.strptime(end_dt,'%Y-%m-%d'))
                 date_range_condition = {
                     date_range['date_field']+'__gte': '%s' % start_dt,
-                    date_range['date_field']+'__lt': '%s' % end_dt
+                    date_range['date_field']+'__lt': '%s' % end_dt_1
                 }
                 queryset = queryset.filter(**date_range_condition)
 
@@ -440,7 +471,13 @@ class StarkHandler(object):
             row = option_object.get_queryset_or_tuple(self.model_class, request, *args, **kwargs)
             search_group_row_list.append(row)
 
-
+        ######### 文字说明 、 需要认证 与 批量操作 关系 ######
+        text_desc = self.get_text_desc()
+        need_auth = self.get_need_auth()
+        # 三者搭配使用方法如下：
+        # 1.只有action_list，会显示action_list
+        # 2.同时存在text_desc和action_list，会显示text_desc
+        # 3.同时存在text_desc、action_list和need_auth = True，则用户已登录显示action_list，无登录则显示text_desc
 
         return render(
             request,
@@ -461,6 +498,8 @@ class StarkHandler(object):
                 'search_group_row_list': search_group_row_list,
                 'model_name': self.model_class._meta.verbose_name,  # 在模板中显示model名称
                 'base_template': self.base_template,
+                'text_desc': text_desc,
+                'need_auth': need_auth,
             }
         )
 

@@ -48,5 +48,5 @@ class ClassListHandler(PermissionHandler,StarkHandler):
         Option('course'),
     ]
 
-    date_range = {'date_field':'start_date','date_title':'开班日期'}
+
 

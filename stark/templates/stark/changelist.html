@@ -93,7 +93,7 @@
                                 <div class="form-group">
                                     <input class="form-control" type="text" name="q" value="{{ search_value }}" placeholder="关键字搜索">
                                     <button class="btn btn-primary" type="submit">
-                                        <i class="fa fa-search" aria-hidden="true"></i>
+                                        <i class="fa fa-refresh" aria-hidden="true"></i>
                                     </button>
                                 </div>
                             </form>
@@ -104,9 +104,9 @@
                     {% if date_range %}
                         <div class="pull-right" style="margin-bottom: 10px; margin-right: 5px;">
                             <form method="GET" class="form-inline">
-                                <div class="input-group" style="width: 280px;">
-                                    <span class="input-group-addon">{{ date_title|default:'日期范围' }}</span>
-                                    <input id="rangePicker" type="text" class="form-control">
+                                <div class="input-group" style="width: 285px;">
+                                    <span class="input-group-addon" style="background-color: #eee;">{{ date_title|default:'日期范围' }}</span>
+                                    <input id="rangePicker" type="text" class="form-control" style="font-size: 13px;">
                                 </div>
                             </form>
                         </div>
@@ -114,22 +114,30 @@
 
                     <form method="post">
                         {% csrf_token %}
-                        {% if action_dict %}
-                            <div class="pull-left" style="margin: 0 5px 10px 0;">
-                                <div class="form-inline">
-                                    <div class="form-group">
-                                        <select class="form-control" name="action">
-                                            <option value="">-请选择操作-</option>
-                                            {% for func_name,func_text in action_dict.items %}
-                                                <option value="{{ func_name }}">{{ func_text }}</option>
-                                            {% endfor %}
-                                        </select>
-                                        <input class="btn btn-primary" type="submit" value="执行"/>
+
+                        {% if user.is_authenticated and need_auth or not text_desc %}
+                            {% if action_dict %}
+                                <div class="pull-left" style="margin: 0 5px 10px 0;">
+                                    <div class="form-inline">
+                                        <div class="form-group">
+                                            <select class="form-control" name="action">
+                                                <option value="">-请选择操作-</option>
+                                                {% for func_name,func_text in action_dict.items %}
+                                                    <option value="{{ func_name }}">{{ func_text }}</option>
+                                                {% endfor %}
+                                            </select>
+                                            <input class="btn btn-primary" type="submit" value="执行"/>
+                                        </div>
                                     </div>
+                                </div>
+                            {% endif %}
+                        {% else %}
+                            <div class="pull-left form-inline" style="margin: 0 5px 0 0;vertical-align: middle;">
+                                <div style="padding: 5px;">
+                                    <i class="fa fa-info-circle"></i> <b>{{ text_desc }}</b>
                                 </div>
                             </div>
                         {% endif %}
-
 
                         {% if add_btn %}
                             <div class="pull-left" style="margin: 0 5px 10px 0;">
@@ -187,9 +195,9 @@
                     '本月': [moment().startOf('month'), moment().endOf('month')],
                     '上月': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')],
                     '本年': [moment().startOf('year'), moment().endOf('year')],
-                    '最近7天': [moment().subtract(6, 'days'), moment()],
-                    '最近30天': [moment().subtract(29, 'days'), moment()],
-                    '最近90天': [moment().subtract(89, 'days'), moment()],
+                    '最近7天': [moment().subtract(7, 'days'), moment()],
+                    '最近30天': [moment().subtract(30, 'days'), moment()],
+                    '最近90天': [moment().subtract(90, 'days'), moment()],
                 },
                 locale: {
                     format: 'YYYY-MM-DD',
@@ -208,7 +216,7 @@
 
             $('#rangePicker').daterangepicker(options, function (start, end, label) {
                 // 选择了时间之后，函数自动被触发。
-                submitDateRangePicker(start.format('YYYY-MM-DD'), end.add(1, 'days').format('YYYY-MM-DD'));
+                submitDateRangePicker(start.format('YYYY-MM-DD'), end.format('YYYY-MM-DD'));
             });
         }
 
