@@ -1,6 +1,35 @@
-"""分页组件"""
+"""
+分页组件应用：
+1. 在视图函数中
+    queryset = models.Issues.objects.filter(project_id=project_id)
+    page_object = Pagination(
+        current_page=request.GET.get('page'),
+        all_count=queryset.count(),
+        base_url=request.path_info,
+        query_params=request.GET
+    )
+    issues_object_list = queryset[page_object.start:page_object.end]
+
+    context = {
+        'issues_object_list': issues_object_list,
+        'page_html': page_object.page_html()
+    }
+    return render(request, 'issues.html', context)
+2. 前端
+    {% for item in issues_object_list %}
+        {{item.xxx}}
+    {% endfor %}
+
+     <nav aria-label="...">
+        <ul class="pagination" style="margin-top: 0;">
+            {{ page_html|safe }}
+        </ul>
+    </nav>
+"""
+import re
+
 class Pagination(object):
-    def __init__(self, current_page, all_count, base_url, query_params, per_page=20, pager_page_count=11):
+    def __init__(self, current_page, all_count, base_url, query_params, per_page=15, pager_page_count=7):
         """
         分页初始化
         :param current_page: 当前页码
@@ -14,9 +43,11 @@ class Pagination(object):
         try:
             self.current_page = int(current_page)
             if self.current_page <= 0:
-                raise Exception()
+                self.current_page = 1
         except Exception as e:
             self.current_page = 1
+        query_params = query_params.copy()
+        query_params._mutable = True
         self.query_params = query_params
         self.per_page = per_page
         self.all_count = all_count
@@ -50,6 +81,9 @@ class Pagination(object):
         生成HTML页码
         :return:
         """
+        if self.all_count == 0:
+            return ""
+
         # 如果数据总页码pager_count<11 pager_page_count
         if self.pager_count < self.pager_page_count:
             pager_start = 1
@@ -71,12 +105,25 @@ class Pagination(object):
 
         page_list = []
 
+        # 省略号
+        dot ='<li class="disabled"><a href="#">...</a></li>'
+
+
         if self.current_page <= 1:
-            prev = '<li><a href="#">上一页</a></li>'
+            to_start = '<li class="disabled"><a href="#">首页</a></li>'
+            prev = '<li class="disabled"><a href="#">上一页</a></li>'
+            page_list.append(to_start)
+            page_list.append(prev)
         else:
+            to_start = '<li><a href="%s?%s">首页</a></li>' % (self.base_url, self.query_params.urlencode())
+            to_start = re.sub('page=\d+',"page=1",to_start)
+
             self.query_params['page'] = self.current_page - 1
             prev = '<li><a href="%s?%s">上一页</a></li>' % (self.base_url, self.query_params.urlencode())
-        page_list.append(prev)
+            page_list.append(to_start)
+            page_list.append(prev)
+            if self.current_page > (self.pager_page_count+1)/2:
+                page_list.append(dot)
         for i in range(pager_start, pager_end + 1):
             self.query_params['page'] = i
             if self.current_page == i:
@@ -87,10 +134,24 @@ class Pagination(object):
             page_list.append(tpl)
 
         if self.current_page >= self.pager_count:
-            nex = '<li><a href="#">下一页</a></li>'
+            nex = '<li class="disabled"><a href="#">下一页</a></li>'
+            to_end = '<li class="disabled"><a href="#">尾页</a></li>'
+            page_list.append(nex)
+            page_list.append(to_end)
         else:
             self.query_params['page'] = self.current_page + 1
             nex = '<li><a href="%s?%s">下一页</a></li>' % (self.base_url, self.query_params.urlencode(),)
-        page_list.append(nex)
+            to_end = '<li><a href="%s?%s">尾页</a></li>' % (self.base_url, self.query_params.urlencode())
+            to_end = re.sub('page=\d+',"page=%s",to_end) % (self.pager_count)
+
+            if self.current_page <  self.pager_count - (self.pager_page_count)/2:
+                page_list.append(dot)
+            page_list.append(nex)
+            page_list.append(to_end)
+
+        if self.all_count:
+            tpl = "<li class='disabled'><a>共%s条数据，页码%s/%s页</a></li>" % (
+            self.all_count, self.current_page, self.pager_count,)
+            page_list.append(tpl)
         page_str = "".join(page_list)
         return page_str

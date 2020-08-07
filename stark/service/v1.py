@@ -12,6 +12,7 @@ from django.db.models import ForeignKey, ManyToManyField
 # import copy
 import datetime
 # from django.utils.timezone import make_aware
+import re
 
 
 def get_url_text(title, url_field, text_field, a_target):
@@ -103,12 +104,22 @@ class SearchGroupRow(object):
         total_query_dict = self.query_dict.copy()
         total_query_dict._mutable = True
 
+
+        # 消除page参数的影响
+        # text = 'apple price $99 orange price $88'
+        # ret = re.sub('\$\d+', '0', text)
+        reg = r"page=\d+"
+
         origin_value_list = self.query_dict.getlist(self.option.field)
         if not origin_value_list:
-            yield "<a class='active' href='?%s'>全部</a>" % total_query_dict.urlencode()
+            yield_url = total_query_dict.urlencode()
+            yield_url = re.sub(reg,'',yield_url)
+            yield "<a class='active' href='?%s'>全部</a>" % yield_url
         else:
             total_query_dict.pop(self.option.field)
-            yield "<a href='?%s'>全部</a>" % total_query_dict.urlencode()
+            yield_url = total_query_dict.urlencode()
+            yield_url = re.sub(reg,'',yield_url)
+            yield "<a href='?%s'>全部</a>" % yield_url
 
         for item in self.queryset_or_tuple:
             text = self.option.get_text(item)
@@ -120,20 +131,28 @@ class SearchGroupRow(object):
                 query_dict[self.option.field] = value
                 if value in origin_value_list:
                     query_dict.pop(self.option.field)
-                    yield "<a class='active' href='?%s'>%s</a>" % (query_dict.urlencode(), text)
+                    yield_url = query_dict.urlencode()
+                    yield_url = re.sub(reg,'',yield_url)
+                    yield "<a class='active' href='?%s'>%s</a>" % (yield_url, text)
                 else:
-                    yield "<a href='?%s'>%s</a>" % (query_dict.urlencode(), text)
+                    yield_url = query_dict.urlencode()
+                    yield_url = re.sub(reg,'',yield_url)
+                    yield "<a href='?%s'>%s</a>" % (yield_url, text)
             else:
                 # {'gender':['1','2']}
                 multi_value_list = query_dict.getlist(self.option.field)
                 if value in multi_value_list:
                     multi_value_list.remove(value)
                     query_dict.setlist(self.option.field, multi_value_list)
-                    yield "<a class='active' href='?%s'>%s</a>" % (query_dict.urlencode(), text)
+                    yield_url = query_dict.urlencode()
+                    yield_url = re.sub(reg,'',yield_url)
+                    yield "<a class='active' href='?%s'>%s</a>" % (yield_url, text)
                 else:
                     multi_value_list.append(value)
                     query_dict.setlist(self.option.field, multi_value_list)
-                    yield "<a href='?%s'>%s</a>" % (query_dict.urlencode(), text)
+                    yield_url = query_dict.urlencode()
+                    yield_url = re.sub(reg,'',yield_url)
+                    yield "<a href='?%s'>%s</a>" % (yield_url, text)
 
         yield '</div>'
 
@@ -234,8 +253,8 @@ class StarkHandler(object):
     # 批量操作选择
     def display_checkbox(self, obj=None, is_header=None, *args, **kwargs):
         if is_header:
-            return "选择"
-        return mark_safe('<input type="checkbox" name="pk" value="%s" />' % obj.pk)
+            return mark_safe('<input type="checkbox" onclick="myCheckboxSelectAll(this.checked)" />')
+        return mark_safe('<input type="checkbox" class="myCheckboxSelect" name="pk" value="%s" />' % obj.pk)
 
     # 自定义编辑列
     def display_edit(self, obj=None, is_header=None, *args, **kwargs):
@@ -290,7 +309,7 @@ class StarkHandler(object):
 
 
     # 添加日期范围框显示
-    date_range = {}  # '{date_field':'create_time','date_title':'日期范围'}
+    date_range = {}  # {'date_field':'create_time','date_title':'日期范围'}
     def get_date_range(self):
         return self.date_range
 
@@ -303,6 +322,17 @@ class StarkHandler(object):
     need_auth = False
     def get_need_auth(self):
         return self.need_auth
+
+    # 链接跳转显示
+    add_link = {}  # add_link = {'url': 'stark:info_businessreference_list', 'text': '我的收藏','href': None}
+    def get_add_link(self, request, *args, **kwargs):
+        if self.add_link:
+            text = self.add_link['text']
+            href = self.add_link['href']
+            if not href:
+                href = reverse(self.add_link['url'])
+            return '<a href="%s" target="_blank"><i class="fa fa-external-link"></i> %s</a>' % (href,text)
+        return None
 
     # 排序
     order_list = []
@@ -479,6 +509,10 @@ class StarkHandler(object):
         # 2.同时存在text_desc和action_list，会显示text_desc
         # 3.同时存在text_desc、action_list和need_auth = True，则用户已登录显示action_list，无登录则显示text_desc
 
+        ########## 添加link ############
+        add_link = self.get_add_link(request, *args, **kwargs)
+
+
         return render(
             request,
             self.change_list_template or 'stark/changelist.html',
@@ -500,6 +534,7 @@ class StarkHandler(object):
                 'base_template': self.base_template,
                 'text_desc': text_desc,
                 'need_auth': need_auth,
+                'add_link': add_link,
             }
         )
 

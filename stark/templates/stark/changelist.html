@@ -132,7 +132,7 @@
                                 </div>
                             {% endif %}
                         {% else %}
-                            <div class="pull-left form-inline" style="margin: 0 5px 0 0;vertical-align: middle;">
+                            <div class="pull-left form-inline" style="margin: 5px 5px 0 0;vertical-align: middle;">
                                 <div style="padding: 5px;">
                                     <i class="fa fa-info-circle"></i> <b>{{ text_desc }}</b>
                                 </div>
@@ -142,6 +142,14 @@
                         {% if add_btn %}
                             <div class="pull-left" style="margin: 0 5px 10px 0;">
                                 {{ add_btn|safe }}
+                            </div>
+                        {% endif %}
+
+                        {% if add_link %}
+                            <div class="pull-left form-inline" style="margin: 5px 10px 0 5px;vertical-align: middle;">
+                                <div style="padding: 5px;">
+                                    {{ add_link|safe }}
+                                </div>
                             </div>
                         {% endif %}
 
@@ -226,12 +234,13 @@
             if (urlstr.indexOf("?")!=-1){
                 if (urlstr.indexOf("start_dt=")!=-1){
                     var param_start = urlstr.substr(urlstr.indexOf("start_dt="),19);
-                    //console.log(param_start);
                     urlstr = urlstr.replace(param_start,"start_dt=" + start);
                     var param_end = urlstr.substr(urlstr.indexOf("end_dt="),17);
-                    //console.log(param_end);
                     urlstr = urlstr.replace(param_end,"end_dt=" + end);
-                    //console.log(urlstr);
+                    // 消除再次查询时page的影响
+                    var reg = /\&page=\d+|\?page=\d+/g;
+                    urlstr = urlstr.replace(reg,'');
+                    //console.log(urlstr)
                     location.href = urlstr;
                 }else{
                     location.href = location.href + '&start_dt=' + start + '&end_dt=' + end ;
@@ -242,5 +251,17 @@
         }
     </script>
 {% endif %}
-
+<script>
+    function myCheckboxSelectAll(selectStatus) {
+        if(selectStatus){
+            $("input[class='myCheckboxSelect']").each(function (i,n) {
+                n.checked = true;
+            });
+        }else{
+            $("input[class='myCheckboxSelect']").each(function (i,n) {
+                n.checked = false;
+            });
+        }
+    }
+</script>
 {% endblock %}
