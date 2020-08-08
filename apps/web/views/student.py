@@ -16,7 +16,7 @@ class StudentModelForm(StarkModelForm):
 class StudentHandler(PermissionHandler,StarkHandler):
     model_form_class = StudentModelForm
 
-    def display_score(self, obj=None, is_header=None, *args, **kwargs):
+    def display_score(self, request, obj=None, is_header=None, *args, **kwargs):
         if is_header:
             return '积分管理'
         'web_scorerecord_list'

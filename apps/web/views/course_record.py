@@ -23,7 +23,7 @@ class StudyRecordModelForm(StarkModelForm):
 class CourseRecordHandler(PermissionHandler,StarkHandler):
     model_form_class = CourseRecordModelForm
 
-    def display_attendance(self, obj=None, is_header=None, *args, **kwargs):
+    def display_attendance(self, request, obj=None, is_header=None, *args, **kwargs):
         if is_header:
             return '考勤'
         name = "%s:%s" % (self.site.namespace, self.get_url_name('attendance'),)
@@ -34,7 +34,7 @@ class CourseRecordHandler(PermissionHandler,StarkHandler):
     list_display = [StarkHandler.display_checkbox, 'class_object', 'day_num', 'teacher',
                     get_datetime_text('时间', 'date'), display_attendance]
 
-    def display_edit_del(self, obj=None, is_header=None, *args, **kwargs):
+    def display_edit_del(self, request, obj=None, is_header=None, *args, **kwargs):
         if is_header:
             return '操作'
         class_id = kwargs.get('class_id')

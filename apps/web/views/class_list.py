@@ -19,12 +19,12 @@ class ClassListModelForm(StarkModelForm):
 
 class ClassListHandler(PermissionHandler,StarkHandler):
 
-    def display_course(self, obj=None, is_header=None, *args, **kwargs):
+    def display_course(self, request, obj=None, is_header=None, *args, **kwargs):
         if is_header:
             return '班级'
         return "%s %s期" % (obj.course.name, obj.semester,)
 
-    def display_course_record(self, obj=None, is_header=None, *args, **kwargs):
+    def display_course_record(self, request, obj=None, is_header=None, *args, **kwargs):
         if is_header:
             return '上课记录'
         record_url = reverse('stark:web_courserecord_list', kwargs={'class_id': obj.pk})

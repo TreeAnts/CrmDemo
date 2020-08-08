@@ -1206,6 +1206,135 @@ web程序是通过 url 的切换来查看不同的页面（功能），所以权
 
 
 
+### 2.4 Stark组件的特殊用法
+
+#### 2.4.1 自定义扩展显示列表示例
+
+- 某项目views/wxinfo.py
+
+  ```python
+  from stark.service.v1 import StarkHandler, get_url_text, get_datetime_text, Option
+  from django.utils.safestring import mark_safe
+  from apps.info import models
+  
+  class WxInfoHandler(StarkHandler):
+  
+      # 普通自定义字段的写法
+      # def display_collect(self, obj=None, is_header=None):
+      #     if is_header:
+      #         return "标题链接（可点击）"
+      #     return mark_safe('<a href="%s" target="_blank">%s</a>'  % (obj.url, obj.title))
+      # list_display = [StarkHandler.display_checkbox,'type',display_title,get_datetime_text('发布日期','pub_date') ]
+  
+      def display_collect(self):
+          """收藏操作（闭包函数），当使用自定义扩展显示列表时，就不能用普通自定义字段的写法"""
+          def inner(self, request, obj=None, is_header=None, *args, **kwargs):  # 闭包函数
+              if is_header:
+                  return "收藏操作"
+              collect = models.BusinessReference.objects.prefetch_related("refs_collect").filter(id=obj.id,collect=request.user).exists()
+              if collect:  # 用户已登录
+                  html = mark_safe('<a href="%s" >取消收藏</a>' % (reverse('info:reference_collect') + '?collect=0&ref_id=' + str(obj.id)), )
+              else:
+                  html = mark_safe('<a href="%s" >收藏</a>' % (reverse('info:reference_collect') + '?collect=1&ref_id=' + str(obj.id)), )
+              return html
+          return inner
+  
+      def get_list_display(self, request, *args, **kwargs):
+          """自定义扩展显示列表"""
+          if request.user.is_authenticated:  # 用户已登录
+              list_display = [
+                  StarkHandler.display_checkbox,
+                  'type',
+                  get_url_text('标题链接（可点击）', 'url', 'title', '_blank'),
+                  get_datetime_text('发布日期', 'pub_date'),
+                  self.display_collect()
+              ]
+          else:
+              list_display = [
+                  'type',
+                  get_url_text('标题链接（可点击）', 'url', 'title', '_blank'),
+                  get_datetime_text('发布日期', 'pub_date')
+              ]
+          return list_display
+  
+      search_list = ['title__contains', ]
+      order_list = ['-pub_date']
+      has_add_btn = False
+      per_page_count = 10
+      date_range = {'date_field': 'pub_date', 'date_title': '发布日期'}
+      search_group = [
+          Option('type', False, title='参考分类：'),
+      ]
+  
+      # 4种情况搭配使用：
+      # 1.只有action_list，会显示action_list
+      # 2.同时存在text_desc和action_list，会显示text_desc
+      # 3.同时存在text_desc、action_list和need_auth=True，则用户已登录显示action_list，无登录则显示text_desc
+      # 4.add_link只有在need_auth=True下才生效
+  
+      need_auth = True
+      text_desc = '用户登录平台后，可对关注的参考信息进行点选收藏。'
+      add_link = {'url': 'stark:info_businessreference_list', 'text': '我的收藏', 'href': None}
+  
+      def action_add_collect(self, request, *args, **kwargs):
+          """批量增加到我的收藏"""
+          return None
+      action_add_collect.text = "批量增加到我的收藏"
+      action_list = [action_add_collect, ]
+  
+  
+  ############################## 华丽的分割线 ##############################
+  
+  from django.shortcuts import render, reverse, redirect
+  
+  def reference_collect_view(request):
+      if request.user.is_authenticated:
+          ref_id = request.GET.get('ref_id')
+          if ref_id:
+              ref_obj = models.BusinessReference.objects.filter(id=ref_id).first()
+              collected = request.GET.get('collect')
+              if collected == '1':
+                  ref_obj.collect.add(request.user)
+              elif collected == '0':
+                  ref_obj.collect.remove(request.user)
+      url = request.META['HTTP_REFERER']
+      return redirect(url)
+  
+  ```
+
+- 这个示例需要关注的点有：
+
+  - date_range的使用
+
+    ```python
+    date_range = {'date_field': 'pub_date', 'date_title': '发布日期'}
+    ```
+
+  - action_list、text_desc、need_auth、add_link这4种情况的搭配使用
+
+    ```python
+    need_auth = True
+    text_desc = '用户登录平台后，可对关注的参考信息进行点选收藏。'
+    add_link = {'url': 'stark:info_businessreference_list', 'text': '我的收藏', 'href': None}
+    
+    def action_add_collect(self, request, *args, **kwargs):
+        """批量增加到我的收藏"""
+        return None
+    action_add_collect.text = "批量增加到我的收藏"
+    action_list = [action_add_collect, ]
+    ```
+
+  - 请求在后台处理的回传机制
+
+    ```python
+    def reference_collect_view(request):
+        ......
+        url = request.META['HTTP_REFERER']
+        return redirect(url)
+    ```
+
+
+
 
 
 ## 3. CRM应用

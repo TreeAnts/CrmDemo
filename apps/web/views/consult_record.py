@@ -19,7 +19,7 @@ class ConsultRecordHandler(PermissionHandler,StarkHandler):
 
     list_display = ['note', 'consultant', 'date']
 
-    def display_edit_del(self, obj=None, is_header=None, *args, **kwargs):
+    def display_edit_del(self, request, obj=None, is_header=None, *args, **kwargs):
         if is_header:
             return '操作'
         customer_id = kwargs.get('customer_id')

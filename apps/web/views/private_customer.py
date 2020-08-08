@@ -15,13 +15,13 @@ class PrivateCustomerModelForm(StarkModelForm):
 class PrivateCustomerHandler(PermissionHandler,StarkHandler):
     model_form_class = PrivateCustomerModelForm
 
-    def display_record(self, obj=None, is_header=None):
+    def display_record(self, request, obj=None, is_header=None, *args, **kwargs):
         if is_header:
             return '跟进'
         record_url = reverse('stark:web_consultrecord_list', kwargs={'customer_id': obj.pk})
         return mark_safe('<a target="_blank" href="%s">跟进</a>' % record_url)
 
-    def display_pay_record(self, obj=None, is_header=None, *args, **kwargs):
+    def display_pay_record(self, request, obj=None, is_header=None, *args, **kwargs):
         if is_header:
             return '缴费'
         record_url = reverse('stark:web_paymentrecord_list', kwargs={'customer_id': obj.pk})

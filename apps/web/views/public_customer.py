@@ -18,7 +18,7 @@ class PublicCustomerModelForm(StarkModelForm):
 
 class PublicCustomerHandler(PermissionHandler,StarkHandler):
 
-    def display_record(self, obj=None, is_header=None):
+    def display_record(self, request, obj=None, is_header=None, *args, **kwargs):
         if is_header:
             return '跟进记录'
         # print(self.get_url_name('record_view'))

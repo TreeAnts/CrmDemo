@@ -60,7 +60,7 @@ class MyOption(Option):
 
 class UserInfoHandler(PermissionHandler,StarkHandler):
 
-    def display_reset_pwd(self, obj=None, is_header=None):
+    def display_reset_pwd(self, request, obj=None, is_header=None, *args, **kwargs):
         if is_header:
             return '重置密码'
         reset_url = self.reverse_commons_url(self.get_url_name('reset_pwd'), pk=obj.pk)
