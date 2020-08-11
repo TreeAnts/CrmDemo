@@ -116,7 +116,10 @@ class Pagination(object):
             page_list.append(prev)
         else:
             to_start = '<li><a href="%s?%s">首页</a></li>' % (self.base_url, self.query_params.urlencode())
-            to_start = re.sub('page=\d+',"page=1",to_start)
+            try:
+                to_start = re.sub('page=\d+',"page=1",to_start)
+            except:
+                pass
 
             self.query_params['page'] = self.current_page - 1
             prev = '<li><a href="%s?%s">上一页</a></li>' % (self.base_url, self.query_params.urlencode())
@@ -142,7 +145,10 @@ class Pagination(object):
             self.query_params['page'] = self.current_page + 1
             nex = '<li><a href="%s?%s">下一页</a></li>' % (self.base_url, self.query_params.urlencode(),)
             to_end = '<li><a href="%s?%s">尾页</a></li>' % (self.base_url, self.query_params.urlencode())
-            to_end = re.sub('page=\d+',"page=%s",to_end) % (self.pager_count)
+            try:
+                to_end = re.sub('page=\d+',"page=%s",to_end) % (self.pager_count)
+            except:
+                pass
 
             if self.current_page <  self.pager_count - (self.pager_page_count)/2:
                 page_list.append(dot)

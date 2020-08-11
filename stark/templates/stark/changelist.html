@@ -145,12 +145,14 @@
                             </div>
                         {% endif %}
 
-                        {% if add_link %}
-                            <div class="pull-left form-inline" style="margin: 5px 10px 0 5px;vertical-align: middle;">
-                                <div style="padding: 5px;">
-                                    {{ add_link|safe }}
+                        {% if user.is_authenticated and need_auth %}
+                            {% if add_link %}
+                                <div class="pull-left form-inline" style="margin: 5px 10px 0 5px;vertical-align: middle;">
+                                    <div style="padding: 5px;">
+                                        {{ add_link|safe }}
+                                    </div>
                                 </div>
-                            </div>
+                            {% endif %}
                         {% endif %}
 
                         <table class="table table-bordered table-list">
@@ -194,7 +196,7 @@
 
         function initDateRangePicker() {
             var options = {
-                startDate: moment('{{ date_start|default:"2019-01-01" }}'),
+                startDate: moment('{{ date_start|default:"2000-01-01" }}'),
                 maxDate: moment('{{ date_end|default:"" }}'),
                 alwaysShowCalendars: true,
                 showWeekNumbers: true,
@@ -204,8 +206,9 @@
                     '上月': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')],
                     '本年': [moment().startOf('year'), moment().endOf('year')],
                     '最近7天': [moment().subtract(7, 'days'), moment()],
-                    '最近30天': [moment().subtract(30, 'days'), moment()],
                     '最近90天': [moment().subtract(90, 'days'), moment()],
+                    '最近3年': [moment().subtract(1095, 'days'), moment()],
+                    '最近5年': [moment().subtract(1826, 'days'), moment()],
                 },
                 locale: {
                     format: 'YYYY-MM-DD',

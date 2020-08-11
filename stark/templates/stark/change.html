@@ -24,6 +24,21 @@
             color: #6d6565;
         }
     </style>
+
+    <script>
+
+        $(function () {
+            initDatePicker();
+        });
+        /*添加对话框：初始化时间选择*/
+        function initDatePicker() {
+            $("input[stark='datepicker']").datepicker({
+                format: 'yyyy-mm-dd',
+                language: "zh-CN",
+                autoclose: true
+            });
+        }
+    </script>
 {% endblock %}
 
 {% block content %}
@@ -58,4 +73,5 @@
             </div>
         </div>
     </div>
+
 {% endblock %}
